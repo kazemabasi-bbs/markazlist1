@@ -107,10 +107,11 @@ img{-webkit-user-drag:none}
 .brand-text .bt-line2{font-weight:700; color:#fff}
 .brand-text .bt-line3{color:rgba(255,255,255,.85)}
 .brand-text .bt-line4{color:#FFD9B8; font-weight:700; font-size:9px}
-.live-clock-row{display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; text-align:center; color:rgba(255,255,255,.78); font-size:10.5px; margin-top:7px; letter-spacing:.2px}
-#liveClockText{display:inline-block; min-width:230px; text-align:center}
-.header-stats{display:flex; align-items:center; gap:6px}
-.header-stat-pill{display:inline-flex; align-items:center; gap:3px; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.28); border-radius:999px; padding:2px 8px; font-size:9.5px; font-weight:700; color:#fff}
+.live-clock-row{display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:nowrap; overflow-x:auto; -ms-overflow-style:none; scrollbar-width:none; text-align:center; color:rgba(255,255,255,.78); font-size:10px; margin-top:7px; letter-spacing:.2px; padding-bottom:2px}
+.live-clock-row::-webkit-scrollbar{display:none}
+#liveClockText{display:inline-block; min-width:210px; flex-shrink:0; text-align:center}
+.header-stats{display:flex; align-items:center; gap:5px; flex-shrink:0}
+.header-stat-pill{display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.28); border-radius:999px; padding:2px 7px; font-size:9px; font-weight:700; color:#fff}
 .about-btn{
   flex-shrink:0; width:27px;height:27px;border-radius:8px;
   background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.4);
@@ -1098,7 +1099,9 @@ function setupHeaderAutoHide(){
   if(!header) return;
   let lastY = window.scrollY;
   let lastT = performance.now();
+  let downAccum = 0;
   let ticking = false;
+  const HIDE_THRESHOLD = 70; // px of sustained downward scroll before the header hides
   function onScroll(){
     const y = window.scrollY;
     const t = performance.now();
@@ -1107,10 +1110,17 @@ function setupHeaderAutoHide(){
     const speed = Math.abs(dy) / dt; // px per ms
     if(y < 30){
       header.classList.remove("header-hidden");
-    } else if(dy > 3){
-      header.classList.add("header-hidden");
+      downAccum = 0;
+    } else if(dy > 0){
+      downAccum += dy;
+      if(downAccum > HIDE_THRESHOLD){
+        header.classList.add("header-hidden");
+      }
     } else if(dy < -3 && speed > 0.55){
       header.classList.remove("header-hidden");
+      downAccum = 0;
+    } else if(dy < 0){
+      downAccum = 0;
     }
     lastY = y;
     lastT = t;
